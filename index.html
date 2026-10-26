@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>רמב״ן — טקסט, רשת וכימות ותובנות מחקר | V10.3</title>
+  <title>רמב״ן — טקסט, רשת וכימות ותובנות מחקר | V11.2</title>
   <link rel="stylesheet" href="./app.css" />
 </head>
 <body>
   <header class="site-header">
     <div>
-      <div class="eyebrow">Ramban Supercommentaries · Integrated Research Dashboard V10.3</div>
+      <div class="eyebrow">Ramban Supercommentaries · Integrated Research Dashboard V11.2</div>
       <h1>טקסט → רשת → כימות</h1>
       <p class="subtitle">מערכת מחקרית אחת: טקסטים מתויגים, גרפי־ידע, כימות, אשכולות ופיזור — וכל מדד חוזר למקור שמאחוריו.</p>
     </div>
     <div class="header-actions">
       <div class="lab-brand" aria-label="המעבדה למדעי הרוח הדיגיטליים — אוניברסיטת חיפה"><img src="./assets/elijah-lab-logo.png" alt="eLijah-Lab · המעבדה למדעי הרוח הדיגיטליים, אוניברסיטת חיפה" width="2048" height="324"></div>
-      <div class="header-mini-actions"><button class="legacy-link" id="openOctoberQA" type="button" title="תיעוד חבילת אוקטובר 2026 והבדיקות">חבילת הדר · אוקטובר 2026</button><button class="legacy-link" id="openV9Correction" type="button" title="תיעוד תיקון זהויות דעת החכם">תיקון זהויות</button><button class="legacy-link" id="openQuickGuide" type="button">איך משתמשים?</button><button class="legacy-link glossary-link" id="openGlossary" type="button">מילון מונחים</button><a class="legacy-link" href="./legacy/ramban-dashboard-V2/index.html" title="פתח את הדשבורד הישן (V2)">מעבר לדשבורד הישן</a></div>
+      <div class="header-mini-actions"><button class="legacy-link" id="openOctoberQA" type="button" title="תיעוד חבילת אוקטובר 2026 והבדיקות">חבילת הדר · אוקטובר 2026</button><button class="legacy-link" id="openV9Correction" type="button" title="תיעוד תיקון זהויות דעת החכם">תיקון זהויות</button><button class="legacy-link" id="openQuickGuide" type="button">איך משתמשים?</button><button class="legacy-link glossary-link" id="openGlossary" type="button">מילון מונחים</button></div>
       <div class="lineage-mini" aria-label="שרשרת הנתונים">
         <span class="source-pill source-text">נתונים ישנים · טקסט ותיוג</span><b>←</b>
         <span class="source-pill source-net">נתונים ישנים · רשת E2/E3</span><b>←</b>
@@ -24,16 +24,16 @@
     </div>
   </header>
 
-  <div class="october-status" role="note"><strong>גרסה 10.3 · אוקטובר 2026:</strong> זיהויי דעת החכם אומתו; מדדים זוגיים נשמרו, ונוספו תקנון raw ומדד רכיב רשת הניתנים לשחזור. ה־co-cluster המקורי מסומן בנפרד כנתון היסטורי. <button id="octInline" type="button">מה בדיוק תוקן?</button></div>
+  <div class="october-status" role="note"><strong>גרסה 11.2 · העמקת ארבע שאלות המחקר:</strong> ארבע שאלות המחקר נמצאות בתוך דוחות מלאים, עם סבבי בדיקה חדשים, בקרות ומסקנות מעודכנות.  זיהויי דעת החכם אומתו; מדדים זוגיים נשמרו, ונוספו תקנון raw ומדד רכיב רשת הניתנים לשחזור. ה־co-cluster המקורי מסומן בנפרד כנתון היסטורי. <button id="octInline" type="button">מה בדיוק תוקן?</button></div>
   <div class="workspace-sticky" id="workspaceSticky">
     <nav class="main-tabs" role="tablist" aria-label="ניווט ראשי">
-      <button type="button" id="tabbtn-journey" role="tab" aria-controls="tab-journey" aria-selected="true" class="main-tab is-active" data-tab="journey">קטע: טקסט → רשת → כימות</button>
+      <button type="button" id="tabbtn-journey" role="tab" aria-controls="tab-journey" aria-selected="false" class="main-tab" data-tab="journey">קטע: טקסט → רשת → כימות</button>
       <button type="button" id="tabbtn-witnesses" role="tab" aria-controls="tab-witnesses" aria-selected="false" class="main-tab" data-tab="witnesses">זהויות ועדי נוסח</button>
       <button type="button" id="tabbtn-commentator" role="tab" aria-controls="tab-commentator" aria-selected="false" class="main-tab" data-tab="commentator">לפי פרשן</button>
       <button type="button" id="tabbtn-corpus" role="tab" aria-controls="tab-corpus" aria-selected="false" class="main-tab" data-tab="corpus">מפות רוחב</button>
       <button type="button" id="tabbtn-clusters" role="tab" aria-controls="tab-clusters" aria-selected="false" class="main-tab" data-tab="clusters">אשכולות ופיזור</button>
       <button type="button" id="tabbtn-dispersion" role="tab" aria-controls="tab-dispersion" aria-selected="false" class="main-tab" data-tab="dispersion">מעבדת פיזור</button>
-      <button type="button" id="tabbtn-reports" role="tab" aria-controls="tab-reports" aria-selected="false" class="main-tab" data-tab="reports">דוחות מלאים</button>
+      <button type="button" id="tabbtn-reports" role="tab" aria-controls="tab-reports" aria-selected="true" class="main-tab is-active" data-tab="reports">דוחות מלאים</button>
       <button type="button" id="tabbtn-data" role="tab" aria-controls="tab-data" aria-selected="false" class="main-tab" data-tab="data">נתונים / QA</button>
     </nav>
 
@@ -55,19 +55,20 @@
     </section>
   </div>
 
+  <div class="research-return-bar"><button type="button" id="researchReturn" hidden>חזרה לראיה בתיק המחקר</button><span id="researchBridgeStatus" role="status" aria-live="polite"></span></div>
   <main id="app" tabindex="-1">
-    <section id="tab-journey" role="tabpanel" aria-labelledby="tabbtn-journey" class="tab-view is-active"></section>
+    <section id="tab-journey" role="tabpanel" aria-labelledby="tabbtn-journey" class="tab-view"></section>
     <section id="tab-witnesses" role="tabpanel" aria-labelledby="tabbtn-witnesses" class="tab-view"></section>
     <section id="tab-commentator" role="tabpanel" aria-labelledby="tabbtn-commentator" class="tab-view"></section>
     <section id="tab-corpus" role="tabpanel" aria-labelledby="tabbtn-corpus" class="tab-view"></section>
     <section id="tab-clusters" role="tabpanel" aria-labelledby="tabbtn-clusters" class="tab-view"></section>
     <section id="tab-dispersion" role="tabpanel" aria-labelledby="tabbtn-dispersion" class="tab-view"></section>
-    <section id="tab-reports" role="tabpanel" aria-labelledby="tabbtn-reports" class="tab-view"></section>
+    <section id="tab-reports" role="tabpanel" aria-labelledby="tabbtn-reports" class="tab-view is-active"></section>
     <section id="tab-data" role="tabpanel" aria-labelledby="tabbtn-data" class="tab-view"></section>
   </main>
 
   <footer>
-    <span>V10.3 · טקסט → תיוג → גרף־ידע → כימות → אשכולות → מעבדת פיזור.</span>
+    <span>V11.2 · טקסט → תיוג → גרף־ידע → כימות → אשכולות → מעבדת פיזור.</span>
     <span>אין חיבור מספרי בין מדדים ממקורות שונים ללא סימון מפורש.</span>
   </footer>
 
@@ -75,6 +76,8 @@
   <script src="./data/old-index.js"></script>
   <script src="./data/quant-reports.js"></script>
   <script src="./data/research-stories.js"></script>
+  <script src="./research/data.js"></script><script src="./research/deep-data.js"></script><script>window.RAMBAN_RESEARCH_BRIDGE={version:"1.0",evidence:Object.fromEntries([...window.RAMBAN_RESEARCH_DATA.evidence,...window.RAMBAN_DEEPENING.evidence].map(e=>[e.evidence_id,e])),sources:Object.fromEntries(Object.entries(window.RAMBAN_RESEARCH_DATA.sources).map(([k,v])=>[k,v.text]))};</script>
   <script src="./app.js"></script>
+  <script src="./research/bridge.js"></script>
 </body>
 </html>

@@ -19,7 +19,7 @@
   const RESEARCH = window.RAMBAN_RESEARCH_STORIES || {stories:[],aux:[]};
 
   const state = {
-    tab: 'journey',
+    tab: 'reports',
     section: sectionMap['15'] ? '15' : Object.keys(sectionMap)[0],
     a: 'MeiratEinayim',
     b: 'SaportaOxford1645',
@@ -54,11 +54,11 @@
     dispersionMinShared: 0,
     dispersionMinClaims: 0,
     dispersionEvidence: 'all',
-    reportMode: 'research',
+    reportMode: 'questions',
     insightId: 'insight-1',
     insightSearch: '',
     insightAnchor: '',
-    reportId: Object.keys(reports).find(k => k.includes('01_ממצאים')) || Object.keys(reports)[0],
+    reportId: 'v10:methods',
     rawTable: 'כל_הזוגות_מדורגים',
     rawSearch: '',
     includeMarginalia: false,
@@ -123,6 +123,47 @@
       data: document.getElementById('tab-data'),
     }
   };
+
+
+  function renderResearchStudy(root) {
+    if(root.querySelector('#researchStudyFrame'))return;
+    root.innerHTML='<iframe id="researchStudyFrame" title="ארבע שאלות המחקר" src="./research/index.html"></iframe>';
+  }
+  async function openResearchRecord(record, layer='text') {
+    if(!['text','network','quant'].includes(layer))throw Error('שכבת מקור לא מוכרת.');
+    const bundle=window.RAMBAN_RESEARCH_BRIDGE;
+    const e=bundle?.evidence?.[record?.evidence_id];
+    if(!e)throw Error('מזהה ראיה לא מוכר.');
+    const expected=bundle.sources[e.section+'|'+e.entity];
+    const unit=await ensureSection(e.section),actual=unit?.graphs?.[toOldId(e.entity)]?.text;
+    if(typeof actual!=='string'||actual!==expected||Array.from(actual).slice(e.start,e.end).join('')!==e.quote)throw Error('טקסט המקור אינו תואם לחבילת המחקר; המעבר נעצר.');
+    const primary=e.entity==='RAMBAN'?'KeterShemTov':canon(e.entity);
+    if(!allCommentators.some(x=>x.id===primary))throw Error('אין בחירה תואמת למזהה החיבור במערכת.');
+    state.section=e.section;state.a=primary;
+    state.b=primary==='Ricanati_Zicaron_aharon_ed'?'KeterShemTov':'Ricanati_Zicaron_aharon_ed';
+    if(!unit.graphs[toOldId(state.b)]||state.a===state.b){const candidates=['KeterShemTov',...Object.keys(unit.graphs).map(canon)].filter(id=>id!==state.a&&id!=='RAMBAN'&&allCommentators.some(c=>c.id===id)&&typeof unit.graphs[toOldId(id)]?.text==='string');state.b=candidates[0]||'RAMBAN';}
+    state.selectedTerm='';syncSelectors();await switchTab('journey');
+    const box=document.createElement('aside');box.id='researchEvidenceContext';box.className='research-evidence-context';
+    const title=document.createElement('strong');title.textContent=e.evidence_id+' · §'+e.section+' · '+e.label;
+    const note=document.createElement('p');note.textContent='המובאה נבדקה מול טקסט היחידה בזמן המעבר. הגרף והמדדים שלהלן הם נתוני המקור; הם אינם אישור לטענה ההיסטורית.';
+    const quote=document.createElement('blockquote');quote.textContent=e.quote;
+    const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='המובאה המדויקת שהובילה לכאן';details.append(summary,quote);
+    box.append(title,note,details);els.views.journey.prepend(box);
+    const target=layer==='network'?'#layer-network':layer==='quant'?'#layer-quant':'#researchEvidenceContext';els.views.journey.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'start'});
+    return {evidenceId:e.evidence_id,section:e.section,entity:e.entity,layer,sourceVerified:true};
+  }
+  async function openResearchPair(section,a,b,layer='text') {
+    if(!['text','network','quant'].includes(layer))throw Error('שכבה לא מוכרת.');
+    const bundle=window.RAMBAN_RESEARCH_BRIDGE;
+    if(!Object.keys(bundle.sources).some(k=>k.startsWith(section+'|')))throw Error('סעיף לא מוכר.');
+    if(!a||!b||a===b)throw Error('דרושים שני חיבורים שונים.');
+    const unit=await ensureSection(section);
+    for(const c of [a,b]){const expected=bundle.sources[section+'|'+c];if(typeof expected!=='string'||unit?.graphs?.[toOldId(c)]?.text!==expected)throw Error('יחידת המקור חסרה או אינה תואמת.');if(!allCommentators.some(x=>x.id===canon(c)))throw Error('חיבור לא מוכר במערכת.');}
+    state.section=section;state.a=canon(a);state.b=canon(b);state.selectedTerm='';syncSelectors();await switchTab('journey');
+    const target=layer==='network'?'#layer-network':layer==='quant'?'#layer-quant':'#layer-text';els.views.journey.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'start'});
+    return {section,a,b,layer,sourceVerified:true};
+  }
+  window.RambanDashboard={version:'11.2',openResearchRecord,openResearchPair,showResearch:()=>{state.reportMode='questions';return switchTab('reports')},getState:()=>({tab:state.tab,section:state.section,a:state.a,b:state.b})};
 
   init();
 
@@ -192,7 +233,7 @@
     els.tabs.forEach(b => {const active=b.dataset.tab===tab;b.classList.toggle('is-active',active);b.setAttribute('aria-selected',String(active));});
     Object.entries(els.views).forEach(([k,v]) => v.classList.toggle('is-active', k === tab));
     updateContextBarVisibility();
-    renderActive();
+    return renderActive();
   }
 
   function updateContextBarVisibility() {
@@ -1059,17 +1100,15 @@
   /* -------------------- REPORTS -------------------- */
   function renderReports(){
     const root=els.views.reports;
-    const research=state.reportMode==='research';
-    root.innerHTML=`<section class="reports-mode-shell" aria-label="סוג הדוח">
-      <div class="reports-mode-tabs" role="tablist" aria-label="דוחות תוכניים וטכניים">
-        <button type="button" role="tab" aria-selected="${research}" class="reports-mode-tab ${research?'is-active':''}" data-mode="research"><span class="mode-icon">✦</span><span><strong>דוחות תוכניים</strong><small>תשע תובנות מחקריות · טקסטים, ראיות והשוואות</small></span></button>
-        <button type="button" role="tab" aria-selected="${!research}" class="reports-mode-tab ${!research?'is-active':''}" data-mode="technical"><span class="mode-icon">≡</span><span><strong>דוחות טכניים</strong><small>דוחות הדר, שיטות, נתונים, בקרת איכות ונספחים</small></span></button>
-      </div>
-      <div class="reports-mode-content" id="reportsModeContent"></div>
-    </section>`;
-    root.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{state.reportMode=button.dataset.mode;renderReports();}));
-    if(research)renderResearchReports(root.querySelector('#reportsModeContent'));
-    else renderTechnicalReports(root.querySelector('#reportsModeContent'));
+    if(!root.querySelector('#reportsModeContent')){
+      root.innerHTML='<section class="reports-mode-shell"><div class="reports-mode-tabs" role="tablist" aria-label="סוג דוח"><button type="button" id="reporttab-research" role="tab" aria-controls="reportpanel-research" class="reports-mode-tab" data-mode="research"><span><strong>דוחות תוכניים</strong><small>תשע תובנות מחקריות</small></span></button><button type="button" id="reporttab-technical" role="tab" aria-controls="reportpanel-technical" class="reports-mode-tab" data-mode="technical"><span><strong>דוחות טכניים</strong><small>שיטות, נתונים ובקרת איכות</small></span></button><button type="button" id="reporttab-questions" role="tab" aria-controls="reportpanel-questions" class="reports-mode-tab" data-mode="questions"><span><strong>ארבע שאלות המחקר</strong><small>שאלה, תשובה מלאה ומסקנה</small></span></button></div><div class="reports-mode-content" id="reportsModeContent"><div id="reportpanel-research" role="tabpanel" aria-labelledby="reporttab-research"></div><div id="reportpanel-technical" role="tabpanel" aria-labelledby="reporttab-technical"></div><div id="reportpanel-questions" role="tabpanel" aria-labelledby="reporttab-questions"></div></div></section>';
+      const tabs=[...root.querySelectorAll('[data-mode]')];
+      tabs.forEach((button,i)=>{button.addEventListener('click',()=>{state.reportMode=button.dataset.mode;renderReports()});button.addEventListener('keydown',ev=>{let j=i;if(ev.key==='ArrowLeft')j=(i+1)%tabs.length;else if(ev.key==='ArrowRight')j=(i+tabs.length-1)%tabs.length;else if(ev.key==='Home')j=0;else if(ev.key==='End')j=tabs.length-1;else return;ev.preventDefault();state.reportMode=tabs[j].dataset.mode;renderReports();tabs[j].focus()})});
+    }
+    root.querySelectorAll('[data-mode]').forEach(b=>{const active=b.dataset.mode===state.reportMode;b.classList.toggle('is-active',active);b.setAttribute('aria-selected',String(active));b.tabIndex=active?0:-1;root.querySelector('#reportpanel-'+b.dataset.mode).hidden=!active});
+    if(state.reportMode==='questions')renderResearchStudy(root.querySelector('#reportpanel-questions'));
+    else if(state.reportMode==='research')renderResearchReports(root.querySelector('#reportpanel-research'));
+    else renderTechnicalReports(root.querySelector('#reportpanel-technical'));
   }
 
   function renderTechnicalReports(root){
@@ -1083,11 +1122,12 @@
     root.innerHTML=`<div class="report-layout">
       <aside class="report-menu">${[...grouped.entries()].map(([g,arr])=>`<div class="report-group-title">${esc(g)}</div>${arr.map(([id,rr])=>`<button class="report-link ${id===state.reportId?'is-active':''}" data-report="${escAttr(id)}">${esc(rr.title)}</button>`).join('')}`).join('')}</aside>
       <section>
-        <div class="panel flat" style="padding:12px 16px"><div class="panel-head" style="margin:0"><div><span class="badge ${isOct?'badge-quant':(isNew?'badge-quant':'badge-net')}">${isV10?'V10 · חישוב מקומי מתועד':(isOct?'מסמכי הדר · אוקטובר 2026':(isNew?'נתונים חדשים':'נתונים ישנים'))}</span><strong style="margin-right:8px">${esc(r.title)}</strong></div><div class="controls">${isV10?`<a class="small-btn" href="./${r.file}">Markdown מקור</a>`:isOct?`<a class="small-btn" href="${state.reportId==='oct:QA'?'./source/hadar_october_2026/data_status.md':'./source/hadar_october_2026/'+r.file.split('/').map(encodeURIComponent).join('/')}">Markdown מקור</a>${state.reportId!=='oct:QA'?`<a class="small-btn" href="./source/hadar_october_2026/${r.file.replace(/\.md$/,'.pdf').split('/').map(encodeURIComponent).join('/')}">PDF</a>`:''}`:isNew&&r.file?`<a class="small-btn" href="./source/new_reports/${encodeURIComponent(r.file)}">Markdown מקור</a>${fileBase?`<a class="small-btn" href="./source/new_reports/${encodeURIComponent(fileBase+'.pdf')}">PDF</a>`:''}`:''}</div></div></div>
+        <div class="panel flat" style="padding:12px 16px"><div class="panel-head" style="margin:0"><div><span class="badge ${isOct?'badge-quant':(isNew?'badge-quant':'badge-net')}">${isV10?'V10 · חישוב מקומי מתועד':(isOct?'מסמכי הדר · אוקטובר 2026':(isNew?'נתונים חדשים':'נתונים ישנים'))}</span><strong style="margin-right:8px">${esc(r.title)}</strong></div><div class="controls"><button type="button" class="small-btn" id="downloadTechnicalReport">הורדת הדוח המוצג</button></div></div></div>
         ${isOct?`<div class="notice" style="margin:14px 0"><strong>מקור מאוקטובר 2026 — שימו לב:</strong> שמות היחידות אכן תוקנו. מדדי raw והחתימות תקפים; תקנון raw חדש ומדד רכיב רשת הוספו ב־V10. קו־האשכול המקורי של E3 נשמר רק כמקור ארכיוני, והוא אינו זהה למדד הרשת החדש. פירוט זמין בדוח V10.</div>`:''}
         <article class="markdown">${markdownToHtml(r.content||'')}</article>
       </section>
     </div>`;
+    root.querySelector('#downloadTechnicalReport')?.addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([r.content||''],{type:'text/markdown;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=(r.file||'report.md').split('/').pop();link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)});
     root.querySelectorAll('[data-report]').forEach(b=>b.addEventListener('click',()=>{state.reportId=b.dataset.report;renderReports();window.scrollTo({top:0,behavior:'smooth'});}));
   }
 
@@ -1322,7 +1362,7 @@
   async function ensureAllSections(){await Promise.all((OLD.index.sections||[]).map(x=>ensureSection(String(x.id))));return window.RAMBAN_V2_SECTIONS;}
   async function ensureCommentator(commentator){
     const id=toOldId(commentator);if(window.RAMBAN_V2_COMMENTATORS[id])return window.RAMBAN_V2_COMMENTATORS[id];
-    await loadScript(id==='מערכת_האלוהות'?'./data/commentators/commentator_theology.js':`./data/commentators/commentator_${encodeURIComponent(id)}.js`);return window.RAMBAN_V2_COMMENTATORS[id]||null;
+    await loadScript(`./data/commentators/commentator_${encodeURIComponent(id)}.js`);return window.RAMBAN_V2_COMMENTATORS[id]||null;
   }
   function loadScript(src){if(loadedScripts.has(src))return Promise.resolve();if(pendingScripts.has(src))return pendingScripts.get(src);const p=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=()=>{loadedScripts.add(src);resolve()};s.onerror=()=>{s.remove();reject(new Error('Failed '+src))};document.head.appendChild(s);}).finally(()=>pendingScripts.delete(src));pendingScripts.set(src,p);return p}
 
